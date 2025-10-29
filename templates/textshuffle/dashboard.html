@@ -1,10 +1,52 @@
 {% extends "base.html" %}
-{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
-<h1>Panel mieszania tekstu</h1>
-<p>Tu pojawią się funkcje  mieszania tekstu.</p>
-<a href="{% url 'index' %}">← Powrót na stronę główną</a>
+<h1>Text Shuffle</h1>
+
+<!-- Komunikaty o błędach formularza -->
+{% if form.errors %}
+  <div style="color: red;">
+    {% for field in form %}
+      {% for error in field.errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if not text_to_display %}
+  <!-- Formularz do wgrywania pliku -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.file }}
+    <br><br>
+    <button type="submit" name="upload">Wgraj plik</button>
+  </form>
+{% else %}
+  <!-- Przyciski zawsze nad tekstem -->
+
+  <!-- Wgraj nowy plik -->
+  <form method="post" enctype="multipart/form-data" style="margin-bottom: 1em;">
+    {% csrf_token %}
+    {{ form.file }}
+    <br><br>
+    <button type="submit" name="upload">Wgraj nowy plik</button>
+  </form>
+
+  <!-- Zamieszaj istniejący tekst -->
+  <form method="post" style="margin-bottom: 1em;">
+    {% csrf_token %}
+    <input type="hidden" name="text_to_display" value="{{ text_to_display }}">
+    <button type="submit" name="shuffle">Zamieszaj</button>
+  </form>
+
+  <h2>{{ header }}</h2>
+  <pre>{{ text_to_display }}</pre>
+{% endif %}
 
 {% endblock %}
