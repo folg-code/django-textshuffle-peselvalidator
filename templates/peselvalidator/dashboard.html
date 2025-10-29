@@ -1,10 +1,31 @@
 {% extends "base.html" %}
-{% load crispy_forms_filters %}
 
 {% block content %}
+<h1>PESEL Validator</h1>
 
-<h1>Panel PESEL</h1>
-<p>Tu pojawią się funkcje walidacji numerów PESEL.</p>
-<a href="{% url 'index' %}">← Powrót na stronę główną</a>
+<form method="post" class="d-flex flex-column align-items-start gap-3 mb-4">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <button type="submit" class="btn btn-outline-primary w-auto">
+    ✅ Sprawdź PESEL
+  </button>
+</form>
+
+{% if result %}
+  {% if result.is_valid %}
+    <div class="alert alert-success" role="alert">
+      <h5 class="mb-2">✅ PESEL jest poprawny!</h5>
+      <p class="mb-1"><strong>Data urodzenia:</strong> {{ result.birth_date }}</p>
+      <p class="mb-0"><strong>Płeć:</strong> {{ result.gender }}</p>
+    </div>
+  {% else %}
+    <div class="alert alert-danger" role="alert">
+      <h5 class="mb-2">❌ PESEL jest niepoprawny</h5>
+      <p class="mb-0">{{ result.error }}</p>
+    </div>
+  {% endif %}
+{% endif %}
+
 
 {% endblock %}
