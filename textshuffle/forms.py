@@ -9,8 +9,7 @@ class UploadTextForm(forms.Form):
             content = uploaded_file.read().decode('utf-8')
         except UnicodeDecodeError:
             raise forms.ValidationError(
-                "Nieprawidłowy format pliku. Proszę wgrać plik tekstowy w kodowaniu UTF-8."
+                "Nieprawidłowy format pliku. Proszę wgrać plik tekstowy "
             )
-        # zapisujemy w cleaned_data zdekodowany tekst
         self.cleaned_data['text_content'] = content
         return uploaded_file

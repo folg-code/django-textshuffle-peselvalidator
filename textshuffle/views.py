@@ -1,45 +1,41 @@
-import random
-import re
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from textshuffle.forms import UploadTextForm
-
+from textshuffle.utils import shuffle_text
 
 def dashboard(request):
-    text_to_display = ""
-    is_shuffled = False
-    header = ""
+    form = UploadTextForm()
+    error_message = ""
 
     if request.method == 'POST':
-        if 'upload' in request.POST:
-            form = UploadTextForm(request.POST, request.FILES)
-            if form.is_valid():
-                text_to_display = form.cleaned_data['text_content']
-                header = "Oryginalny tekst"
-        elif 'shuffle' in request.POST:
-            form = UploadTextForm()
-            text_to_display = request.POST.get('text_to_display', '')
-            if text_to_display:
-                text_to_display = shuffle_text(text_to_display)
-                is_shuffled = True
-                header = "Zamieszany tekst"
-    else:
-        form = UploadTextForm()
+        form = UploadTextForm(request.POST, request.FILES)
+        if form.is_valid():
+            text_content = form.cleaned_data['text_content']
+            text_content_shuffled = shuffle_text(text_content)
+            request.session['text_to_shuffle'] = text_content_shuffled
+            return redirect('textshuffle:result')
+        else:
+            error_message = form.errors.get('file', ["Nieprawidłowy plik"])[0]
 
     return render(request, 'textshuffle/dashboard.html', {
-        'text_to_display': text_to_display,
-        'is_shuffled': is_shuffled,
-        'header': header,
-        'form': form
+        'form': form,
+        'error_message': error_message
     })
 
-def shuffle_text(text):
-    def shuffle_word(word):
-        if len(word) <= 3:
-            return word
-        middle = list(word[1:-1])
-        random.shuffle(middle)
-        return word[0] + "".join(middle) + word[-1]
+def result(request):
+    text_to_shuffle = request.session.get('text_to_shuffle', '')
 
-    return re.sub(r'\w+', lambda m: shuffle_word(m.group()), text)
+    if not text_to_shuffle:
+        return redirect('textshuffle:dashboard')
+
+    # Zamieszaj ponownie jeśli kliknięto przycisk
+    if request.method == 'POST' and 'shuffle' in request.POST:
+        text_to_shuffle = shuffle_text(text_to_shuffle)
+        request.session['text_to_shuffle'] = text_to_shuffle
+
+    return render(request, 'textshuffle/result.html', {
+        'shuffled_text': text_to_shuffle
+    })
+
+

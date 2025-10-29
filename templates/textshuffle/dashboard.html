@@ -1,52 +1,35 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
-
 <h1>Text Shuffle</h1>
 
-<!-- Komunikaty o błędach formularza -->
-{% if form.errors %}
-  <div style="color: red;">
-    {% for field in form %}
-      {% for error in field.errors %}
-        <p>{{ error }}</p>
-      {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-      <p>{{ error }}</p>
-    {% endfor %}
-  </div>
+{% if error_message %}
+<div class="alert alert-danger" role="alert">
+  {{ error_message }}
+</div>
 {% endif %}
 
-{% if not text_to_display %}
-  <!-- Formularz do wgrywania pliku -->
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.file }}
-    <br><br>
-    <button type="submit" name="upload">Wgraj plik</button>
-  </form>
-{% else %}
-  <!-- Przyciski zawsze nad tekstem -->
+<form method="post" enctype="multipart/form-data" class="d-flex flex-column align-items-start gap-3">
+  {% csrf_token %}
+  
+  <input type="file" name="file" id="id_file" class="d-none" required>
+  
+  <label for="id_file" class="btn btn-outline-primary w-auto" id="fileLabel">
+    📁 Wybierz plik
+  </label>
+  
+  <button type="submit" class="btn btn-outline-primary w-aut">⬆️ Wgraj plik</button>
+</form>
 
-  <!-- Wgraj nowy plik -->
-  <form method="post" enctype="multipart/form-data" style="margin-bottom: 1em;">
-    {% csrf_token %}
-    {{ form.file }}
-    <br><br>
-    <button type="submit" name="upload">Wgraj nowy plik</button>
-  </form>
+<p class="mt-3 text-muted" id="fileName"></p>
 
-  <!-- Zamieszaj istniejący tekst -->
-  <form method="post" style="margin-bottom: 1em;">
-    {% csrf_token %}
-    <input type="hidden" name="text_to_display" value="{{ text_to_display }}">
-    <button type="submit" name="shuffle">Zamieszaj</button>
-  </form>
+<script>
+  const fileInput = document.getElementById("id_file");
+  const fileNameDisplay = document.getElementById("fileName");
 
-  <h2>{{ header }}</h2>
-  <pre>{{ text_to_display }}</pre>
-{% endif %}
-
+  fileInput.addEventListener("change", (event) => {
+    const fileName = event.target.files[0]?.name;
+    fileNameDisplay.textContent = fileName ? `Wybrano: ${fileName}` : "";
+  });
+</script>
 {% endblock %}

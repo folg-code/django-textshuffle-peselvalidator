@@ -5,5 +5,6 @@ from textshuffle import views
 app_name = "textshuffle"
 
 urlpatterns = [
-    path("", views.dashboard, name="dashboard"),
+    path('', views.dashboard, name='dashboard'),
+    path('result/', views.result, name='result'),
 ]
