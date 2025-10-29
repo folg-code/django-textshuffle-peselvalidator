@@ -23,4 +23,3 @@ def dashboard(request):
         'form': form,
         'result': result
     })
-

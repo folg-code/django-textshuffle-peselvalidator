@@ -1,6 +1,7 @@
 import random
 import re
 
+
 def shuffle_text(text):
     def shuffle_word(word):
         if len(word) <= 3:

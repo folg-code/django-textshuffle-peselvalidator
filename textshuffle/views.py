@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from textshuffle.forms import UploadTextForm
 from textshuffle.utils import shuffle_text
 
+
 def dashboard(request):
     form = UploadTextForm()
     error_message = ""
@@ -23,6 +24,7 @@ def dashboard(request):
         'error_message': error_message
     })
 
+
 def result(request):
     text_to_shuffle = request.session.get('text_to_shuffle', '')
 
@@ -37,5 +39,3 @@ def result(request):
     return render(request, 'textshuffle/result.html', {
         'shuffled_text': text_to_shuffle
     })
-
-

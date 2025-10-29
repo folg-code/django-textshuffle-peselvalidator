@@ -2,6 +2,7 @@ from datetime import date
 
 from django import forms
 
+
 class PESELForm(forms.Form):
     pesel = forms.CharField(
         label="Numer PESEL",
@@ -14,16 +15,12 @@ class PESELForm(forms.Form):
         pesel = self.cleaned_data['pesel']
 
         if not pesel.isdigit():
-            raise forms.ValidationError("PESEL może zawierać tylko cyfry.")
+            raise forms.ValidationError(
+                "PESEL może zawierać tylko cyfry.")
 
         if len(pesel) != 11:
-            raise forms.ValidationError("PESEL powinien mieć dokładnie 11 cyfr.")
-
-        weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3]
-        checksum = sum(int(p) * w for p, w in zip(pesel[:10], weights))
-        control_digit = (10 - checksum % 10) % 10
-        if control_digit != int(pesel[10]):
-            raise forms.ValidationError("Niepoprawna cyfra kontrolna PESEL.")
+            raise forms.ValidationError(
+                "PESEL powinien mieć dokładnie 11 cyfr.")
 
         year = int(pesel[0:2])
         month = int(pesel[2:4])
@@ -47,7 +44,14 @@ class PESELForm(forms.Form):
         try:
             birth_date = date(year, month, day)
         except ValueError:
-            raise forms.ValidationError("Niepoprawna data urodzenia w numerze PESEL.")
+            raise forms.ValidationError(
+                "Niepoprawna data urodzenia w numerze PESEL.")
+
+        weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3]
+        checksum = sum(int(p) * w for p, w in zip(pesel[:10], weights))
+        control_digit = (10 - checksum % 10) % 10
+        if control_digit != int(pesel[10]):
+            raise forms.ValidationError("Niepoprawna cyfra kontrolna PESEL.")
 
         gender = 'Kobieta' if int(pesel[9]) % 2 == 0 else 'Mężczyzna'
 
