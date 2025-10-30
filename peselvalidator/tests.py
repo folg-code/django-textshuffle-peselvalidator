@@ -3,50 +3,49 @@ from datetime import date
 from django.test import TestCase, Client
 
 from peselvalidator.forms import PESELForm
+from peselvalidator.utils import parse_pesel, InvalidPESEL
 
 
 class PESELFormTest(TestCase):
 
     def test_valid_pesel(self):
-        pesel = '44051401458'  # poprawny PESEL
-        form = PESELForm(data={'pesel': pesel})
+        form = PESELForm(data={"pesel": "44051401458"})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['birth_date'], date(1944, 5, 14))
-        self.assertEqual(form.cleaned_data['gender'], 'Mężczyzna')
+        self.assertEqual(form.cleaned_data['gender'], "Mężczyzna")
+
+    def test_invalid_pesel(self):
+        form = PESELForm(data={"pesel": "4405140A458"})
+        self.assertFalse(form.is_valid())
+        self.assertIn("PESEL może zawierać tylko cyfry", form.errors['pesel'][0])
+
+
+class ParsePESELTest(TestCase):
+
+    def test_valid_pesel(self):
+        result = parse_pesel("44051401458")
+        self.assertEqual(result['birth_date'], date(1944, 5, 14))
+        self.assertEqual(result['gender'], "Mężczyzna")
 
     def test_invalid_characters(self):
-        form = PESELForm(
-            data={'pesel': '4405140A458'}
-        )
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "PESEL może zawierać tylko cyfry",
-            form.errors['pesel'][0]
-        )
+        with self.assertRaises(InvalidPESEL) as cm:
+            parse_pesel("4405140A458")
+        self.assertIn("PESEL może zawierać tylko cyfry", str(cm.exception))
 
     def test_invalid_length(self):
-        form = PESELForm(
-            data={'pesel': '1234567890'}
-        )
-        self.assertFalse(form.is_valid())
+        with self.assertRaises(InvalidPESEL) as cm:
+            parse_pesel("1234567890")
+        self.assertIn("PESEL powinien mieć dokładnie 11 cyfr", str(cm.exception))
 
     def test_wrong_checksum(self):
-        form = PESELForm(
-            data={'pesel': '44051401459'}
-        )  # ostatnia cyfra zmieniona
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "Niepoprawna cyfra kontrolna PESEL",
-            form.errors['pesel'][0]
-        )
+        with self.assertRaises(InvalidPESEL) as cm:
+            parse_pesel("44051401459")
+        self.assertIn("Niepoprawna cyfra kontrolna PESEL", str(cm.exception))
 
     def test_invalid_date(self):
-        form = PESELForm(data={'pesel': '44053201458'})
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "Niepoprawna data urodzenia w numerze PESEL",
-            form.errors['pesel'][0]
-        )
+        with self.assertRaises(InvalidPESEL) as cm:
+            parse_pesel("44053201458")
+        self.assertIn("Niepoprawna data urodzenia w numerze PESEL", str(cm.exception))
 
 
 class PESELViewsTest(TestCase):
